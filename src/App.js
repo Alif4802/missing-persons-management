@@ -1,18 +1,12 @@
-// src/App.js
-
 import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
+import { JsonRpcProvider, Contract } from 'ethers'; // Updated imports
 import './App.css';
 import contractABI from './contractABI';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import RegisterUser from './components/RegisterUser';
-import AddMissingPerson from './components/AddMissingPerson';
-import CasesList from './components/CasesList';
-import AppointmentBooking from './components/AppointmentBooking';
-import AdminPanel from './components/AdminPanel';
 
-const CONTRACT_ADDRESS = '0xd9145CCE52D386f254917e481eB44e9943F39138';
+const CONTRACT_ADDRESS = '0xf8e81D47203A594245E36C48e151709F0C19fBe8';
 
 function App() {
   const [account, setAccount] = useState('');
@@ -22,7 +16,6 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
 
-  // Enum mappings for display
   const roles = ['Admin', 'Reporter', 'Investigator'];
   const statuses = ['Missing', 'Found'];
   const urgencyLevels = ['High', 'Medium', 'Low'];
@@ -30,41 +23,32 @@ function App() {
 
   useEffect(() => {
     const init = async () => {
-      if (window.ethereum) {
-        try {
-          // Request account access
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          const currentAccount = accounts[0];
-          setAccount(currentAccount);
+      try {
+        // Connect to the Hardhat network
+        const provider = new JsonRpcProvider('http://127.0.0.1:8545'); // Hardhat default RPC URL
+        const accounts = await provider.listAccounts(); // Get pre-funded accounts from Hardhat
+        const currentAccount = accounts[0]; // Use the first account
+        setAccount(currentAccount);
 
-          // Set up ethers
-          const ethProvider = new ethers.providers.Web3Provider(window.ethereum);
+        const missingPersonsContract = new Contract(
+          CONTRACT_ADDRESS,
+          contractABI,
+          provider.getSigner(currentAccount) // Use the signer for the current account
+        );
+        setContract(missingPersonsContract);
 
-          // Create contract instance
-          const missingPersonsContract = new ethers.Contract(
-            CONTRACT_ADDRESS,
-            contractABI,
-            ethProvider.getSigner()
-          );
-          setContract(missingPersonsContract);
+        const userRegistered = await missingPersonsContract.isUserRegistered(currentAccount);
+        setIsRegistered(userRegistered);
 
-          // Check if user is registered
-          const userRegistered = await missingPersonsContract.isUserRegistered(currentAccount);
-          setIsRegistered(userRegistered);
-
-          if (userRegistered) {
-            const user = await missingPersonsContract.users(currentAccount);
-            setUserRole(user.role);
-            setUserName(user.name);
-          }
-
-          setLoading(false);
-        } catch (error) {
-          console.error("Error initializing app:", error);
-          setLoading(false);
+        if (userRegistered) {
+          const user = await missingPersonsContract.users(currentAccount);
+          setUserRole(user.role);
+          setUserName(user.name);
         }
-      } else {
-        console.log("No Ethereum browser extension detected");
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error initializing app:', error);
         setLoading(false);
       }
     };
@@ -72,7 +56,6 @@ function App() {
     init();
   }, []);
 
-  // Listen for account changes
   useEffect(() => {
     if (window.ethereum) {
       window.ethereum.on('accountsChanged', (accounts) => {
@@ -110,15 +93,14 @@ function App() {
 
   if (!account) {
     return (
-<Login
-connectWallet={() => {
-          if (window.ethereum) {
-window.ethereum
-.request({ method: 'eth_requestAccounts' })
-              .then((accounts) => setAccount(accounts[0]))
-              .catch((error) => console.error('Error connecting wallet:', error));
-          } else {
-            alert('No Ethereum browser extension detected. Please install MetaMask.');
+      <Login
+        connectWallet={async () => {
+          try {
+            const provider = new JsonRpcProvider('http://127.0.0.1:8545');
+            const accounts = await provider.listAccounts();
+            setAccount(accounts[0]); // Use the first account
+          } catch (error) {
+            console.error('Error connecting to Hardhat network:', error);
           }
         }}
       />

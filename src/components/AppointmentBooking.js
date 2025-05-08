@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
+import { parseEther } from 'ethers'; // Updated import
 
 function AppointmentBooking({ contract, cases, timeSlots }) {
   const [investigators, setInvestigators] = useState([]);
@@ -9,9 +9,7 @@ function AppointmentBooking({ contract, cases, timeSlots }) {
   const [loading, setLoading] = useState(false);
   const [slotAvailability, setSlotAvailability] = useState({});
   
-  
   useEffect(() => {
-  
     setInvestigators([
       { address: '0x123...', name: 'Investigator 1' },
       { address: '0x456...', name: 'Investigator 2' }
@@ -24,19 +22,13 @@ function AppointmentBooking({ contract, cases, timeSlots }) {
     }
   }, [selectedInvestigator, contract]);
   
-  useEffect(() => {
-    checkSlotAvailability();
-  }, [checkSlotAvailability]);
-  
   const checkSlotAvailability = async (investigatorAddress) => {
     try {
       const availability = {};
-      
       for (let i = 0; i < timeSlots.length; i++) {
         const isBooked = await contract.getAppointmentStatus(investigatorAddress, i);
         availability[i] = !isBooked;
       }
-      
       setSlotAvailability(availability);
     } catch (error) {
       console.error("Error checking slot availability:", error);
@@ -55,12 +47,11 @@ function AppointmentBooking({ contract, cases, timeSlots }) {
         parseInt(selectedCase),
         selectedInvestigator,
         parseInt(selectedTimeSlot),
-        { value: ethers.utils.parseEther('0.01') }
+        { value: parseEther('0.01') } // Updated to use parseEther
       );
       
       await tx.wait();
       alert('Appointment booked successfully!');
-   
       setSelectedCase('');
       setSelectedTimeSlot('');
       checkSlotAvailability(selectedInvestigator);
