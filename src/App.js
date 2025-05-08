@@ -12,11 +12,10 @@ import CasesList from './components/CasesList';
 import AppointmentBooking from './components/AppointmentBooking';
 import AdminPanel from './components/AdminPanel';
 
-const CONTRACT_ADDRESS = '0xYourContractAddressHere'; // Replace with deployed contract address
+const CONTRACT_ADDRESS = '0xd9145CCE52D386f254917e481eB44e9943F39138';
 
 function App() {
   const [account, setAccount] = useState('');
-  const [provider, setProvider] = useState(null);
   const [contract, setContract] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -40,7 +39,6 @@ function App() {
 
           // Set up ethers
           const ethProvider = new ethers.providers.Web3Provider(window.ethereum);
-          setProvider(ethProvider);
 
           // Create contract instance
           const missingPersonsContract = new ethers.Contract(
@@ -87,13 +85,20 @@ function App() {
   const handleRegister = async (nid, name, role) => {
     try {
       setLoading(true);
+
+      if (!contract) {
+        throw new Error('Contract is not initialized.');
+      }
+
       const tx = await contract.registerUser(nid, name, parseInt(role));
       await tx.wait();
+
       setIsRegistered(true);
       setUserRole(parseInt(role));
       setUserName(name);
     } catch (error) {
       console.error("Error registering user:", error);
+      alert("Registration failed. Please check your inputs and try again.");
     } finally {
       setLoading(false);
     }
@@ -105,11 +110,11 @@ function App() {
 
   if (!account) {
     return (
-      <Login
-        connectWallet={() => {
+<Login
+connectWallet={() => {
           if (window.ethereum) {
-            window.ethereum
-              .request({ method: 'eth_requestAccounts' })
+window.ethereum
+.request({ method: 'eth_requestAccounts' })
               .then((accounts) => setAccount(accounts[0]))
               .catch((error) => console.error('Error connecting wallet:', error));
           } else {

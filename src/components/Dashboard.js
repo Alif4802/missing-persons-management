@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import AddMissingPerson from './AddMissingPerson';
 import CasesList from './CasesList';
 import AppointmentBooking from './AppointmentBooking';
@@ -9,15 +9,10 @@ function Dashboard({ userRole, contract, account, roles, statuses, urgencyLevels
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('cases');
 
-  useEffect(() => {
-    fetchCases();
-  }, [contract]);
-
-  const fetchCases = async () => {
+  const fetchCases = useCallback(async () => {
     try {
       setLoading(true);
       const caseIds = await contract.getAllMissingPersons();
-      
       const casePromises = caseIds.map(async (id) => {
         const caseData = await contract.missingPersons(id);
         return {
@@ -31,18 +26,21 @@ function Dashboard({ userRole, contract, account, roles, statuses, urgencyLevels
           contactNumber: caseData.contactNumber,
           urgencyLevel: urgencyLevels[caseData.urgencyLevel],
           reporterAddress: caseData.reporterAddress,
-          investigatorAddress: caseData.investigatorAddress
+          investigatorAddress: caseData.investigatorAddress,
         };
       });
-      
       const fetchedCases = await Promise.all(casePromises);
       setCases(fetchedCases);
     } catch (error) {
-      console.error("Error fetching cases:", error);
+      console.error('Error fetching cases:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [contract, statuses, urgencyLevels]);
+
+  useEffect(() => {
+    fetchCases();
+  }, [fetchCases]);
 
   // Filter cases based on user role
   const filteredCases = cases.filter(caseItem => {
