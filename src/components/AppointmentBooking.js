@@ -26,7 +26,7 @@ function AppointmentBooking({ contract, cases, timeSlots }) {
   
   useEffect(() => {
     checkSlotAvailability();
-  }, [checkSlotAvailability]); // Add the missing dependency
+  }, [checkSlotAvailability]);
   
   const checkSlotAvailability = async (investigatorAddress) => {
     try {
@@ -60,8 +60,7 @@ function AppointmentBooking({ contract, cases, timeSlots }) {
       
       await tx.wait();
       alert('Appointment booked successfully!');
-      
-      // Reset form and refresh availability
+   
       setSelectedCase('');
       setSelectedTimeSlot('');
       checkSlotAvailability(selectedInvestigator);
