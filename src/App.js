@@ -104,7 +104,20 @@ function App() {
   }
 
   if (!account) {
-    return <Login connectWallet={() => window.ethereum.request({ method: 'eth_requestAccounts' })} />;
+    return (
+      <Login
+        connectWallet={() => {
+          if (window.ethereum) {
+            window.ethereum
+              .request({ method: 'eth_requestAccounts' })
+              .then((accounts) => setAccount(accounts[0]))
+              .catch((error) => console.error('Error connecting wallet:', error));
+          } else {
+            alert('No Ethereum browser extension detected. Please install MetaMask.');
+          }
+        }}
+      />
+    );
   }
 
   if (!isRegistered) {

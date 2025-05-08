@@ -9,18 +9,15 @@ function AppointmentBooking({ contract, cases, timeSlots }) {
   const [loading, setLoading] = useState(false);
   const [slotAvailability, setSlotAvailability] = useState({});
   
-  // Fetch all investigators
+  
   useEffect(() => {
-    // This is a simplified implementation
-    // In a real app, you would need a way to query all investigators
-    // For now, we'll assume investigators are stored off-chain or fetched in another way
+  
     setInvestigators([
       { address: '0x123...', name: 'Investigator 1' },
       { address: '0x456...', name: 'Investigator 2' }
     ]);
   }, []);
   
-  // Check slot availability when investigator changes
   useEffect(() => {
     if (selectedInvestigator) {
       checkSlotAvailability(selectedInvestigator);

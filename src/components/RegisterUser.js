@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 function RegisterUser({ onRegister, roles }) {
   const [nid, setNid] = useState('');
   const [name, setName] = useState('');
-  const [role, setRole] = useState('1'); // Default to Reporter role
+  const [role, setRole] = useState('1');
 
   const handleSubmit = (e) => {
     e.preventDefault();

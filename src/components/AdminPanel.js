@@ -7,7 +7,7 @@ function AdminPanel({ contract, cases, timeSlots, statuses, roles, onCaseUpdated
   const [divisionStats, setDivisionStats] = useState({});
   const [loading, setLoading] = useState(false);
   
-  // Fetch all investigators - simplified implementation
+
   useEffect(() => {
     setInvestigators([
       { address: '0x123...', name: 'Investigator 1' },
@@ -15,7 +15,6 @@ function AdminPanel({ contract, cases, timeSlots, statuses, roles, onCaseUpdated
     ]);
   }, []);
   
-  // Calculate division statistics
   useEffect(() => {
     const stats = {};
     cases.forEach(caseItem => {
