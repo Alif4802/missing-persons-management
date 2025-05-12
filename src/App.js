@@ -6,7 +6,7 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import RegisterUser from './components/RegisterUser';
 
-const CONTRACT_ADDRESS = '0xf8e81D47203A594245E36C48e151709F0C19fBe8';
+const CONTRACT_ADDRESS = '0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8'; // Updated with the deployed contract address from Remix IDE
 
 function App() {
   const [account, setAccount] = useState('');
@@ -24,16 +24,21 @@ function App() {
   useEffect(() => {
     const init = async () => {
       try {
-        // Connect to the Hardhat network
-        const provider = new JsonRpcProvider('http://127.0.0.1:8545'); // Hardhat default RPC URL
-        const accounts = await provider.listAccounts(); // Get pre-funded accounts from Hardhat
-        const currentAccount = accounts[0]; // Use the first account
+        if (!window.ethereum) {
+          throw new Error('MetaMask is not installed. Please install MetaMask and try again.');
+        }
+
+        // Request accounts from MetaMask
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const currentAccount = accounts[0];
         setAccount(currentAccount);
 
+        // Connect to the Ganache network
+        const provider = new JsonRpcProvider('http://127.0.0.1:8545'); // Ganache default RPC URL
         const missingPersonsContract = new Contract(
           CONTRACT_ADDRESS,
           contractABI,
-          provider.getSigner(currentAccount) // Use the signer for the current account
+          provider.getSigner()
         );
         setContract(missingPersonsContract);
 
@@ -96,11 +101,14 @@ function App() {
       <Login
         connectWallet={async () => {
           try {
-            const provider = new JsonRpcProvider('http://127.0.0.1:8545');
-            const accounts = await provider.listAccounts();
+            if (!window.ethereum) {
+              throw new Error('MetaMask is not installed. Please install MetaMask and try again.');
+            }
+
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             setAccount(accounts[0]); // Use the first account
           } catch (error) {
-            console.error('Error connecting to Hardhat network:', error);
+            console.error('Error connecting to MetaMask:', error);
           }
         }}
       />
