@@ -6,7 +6,7 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import RegisterUser from './components/RegisterUser';
 
-const CONTRACT_ADDRESS = '0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8'; // Updated with the deployed contract address from Remix IDE
+const CONTRACT_ADDRESS = '0xD7ACd2a9FD159E69Bb102A1ca21C9a3e3A5F771B'; 
 
 function App() {
   const [account, setAccount] = useState('');
