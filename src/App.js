@@ -34,11 +34,12 @@ function App() {
         setAccount(currentAccount);
 
         // Connect to the Ganache network
-        const provider = new JsonRpcProvider('http://127.0.0.1:8545'); // Ganache default RPC URL
+        const provider = new JsonRpcProvider('http://127.0.0.1:8545'); 
+        const signer = provider.getSigner(currentAccount); 
         const missingPersonsContract = new Contract(
           CONTRACT_ADDRESS,
           contractABI,
-          provider.getSigner()
+          signer // Use the signer for write operations
         );
         setContract(missingPersonsContract);
 
