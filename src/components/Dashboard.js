@@ -3,8 +3,9 @@ import AddMissingPerson from './AddMissingPerson';
 import CasesList from './CasesList';
 import AppointmentBooking from './AppointmentBooking';
 import AdminPanel from './AdminPanel';
+import contract from '../ethereum/contract';
 
-function Dashboard({ userRole, contract, account, roles, statuses, urgencyLevels, timeSlots }) {
+function Dashboard({ userRole, account, roles, statuses, urgencyLevels, timeSlots }) {
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('cases');
@@ -36,10 +37,27 @@ function Dashboard({ userRole, contract, account, roles, statuses, urgencyLevels
     } finally {
       setLoading(false);
     }
-  }, [contract, statuses, urgencyLevels]);
+  }, [statuses, urgencyLevels]);
 
   useEffect(() => {
     fetchCases();
+  }, [fetchCases]);
+
+  // Subscribe to MissingPersonAdded events
+  useEffect(() => {
+    const subscription = contract.events.MissingPersonAdded()
+      .on('data', (event) => {
+        // Optionally, you can fetch the new case or just refetch all
+        fetchCases();
+      })
+      .on('error', (error) => {
+        console.error('Error in MissingPersonAdded event subscription:', error);
+      });
+    return () => {
+      if (subscription && subscription.unsubscribe) {
+        subscription.unsubscribe();
+      }
+    };
   }, [fetchCases]);
 
   // Filter cases based on user role

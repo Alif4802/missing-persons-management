@@ -1,7 +1,31 @@
-import React from 'react';
+import contract from '../ethereum/contract';
+import React, { useState, useEffect } from 'react';
 
-function CasesList({ cases, loading, userRole, contract, refreshCases }) {
-  if (loading) {
+function CasesList({ loading, userRole, refreshCases }) {
+  const [cases, setCases] = useState([]);
+  const [fetching, setFetching] = useState(true);
+
+  useEffect(() => {
+    const fetchCases = async () => {
+      setFetching(true);
+      try {
+        const total = await contract.methods.totalCases().call();
+        const caseList = [];
+        for (let i = 0; i < total; i++) {
+          const caseItem = await contract.methods.missingPersons(i).call();
+          caseList.push(caseItem);
+        }
+        setCases(caseList);
+      } catch (error) {
+        console.error('Error fetching cases:', error);
+      } finally {
+        setFetching(false);
+      }
+    };
+    fetchCases();
+  }, [refreshCases]);
+
+  if (loading || fetching) {
     return <div className="loading">Loading cases...</div>;
   }
   

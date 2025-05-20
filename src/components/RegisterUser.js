@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
+import web3 from '../ethereum/provider';
+import contract from '../ethereum/contract';
 
 function RegisterUser({ onRegister, roles }) {
   const [nid, setNid] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState('1');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onRegister(nid, name, role);
+    try {
+      const accounts = await web3.eth.getAccounts();
+      await contract.methods.registerUser(nid, name, role).send({ from: accounts[0] });
+      onRegister(nid, name, role);
+      alert('Registration successful!');
+    } catch (error) {
+      console.error('Registration failed:', error);
+      alert('Registration failed. Please check your inputs and try again.');
+    }
   };
 
   return (

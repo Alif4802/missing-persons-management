@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import web3 from '../ethereum/provider';
+import contract from '../ethereum/contract';
 
-function AddMissingPerson({ contract, onSuccess }) {
+function AddMissingPerson({ onSuccess }) {
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -24,16 +26,18 @@ function AddMissingPerson({ contract, onSuccess }) {
     setLoading(true);
     
     try {
-      const tx = await contract.addMissingPerson(
-        formData.name,
-        parseInt(formData.age),
-        parseInt(formData.height),
-        formData.description,
-        formData.lastSeenLocation,
-        formData.contactNumber
-      );
+      const accounts = await web3.eth.getAccounts();
+      const caseId = Date.now().toString();
+      const details = {
+        name: formData.name,
+        age: parseInt(formData.age),
+        height: parseInt(formData.height),
+        description: formData.description,
+        lastSeenLocation: formData.lastSeenLocation,
+        contactNumber: formData.contactNumber
+      };
+      await contract.methods.addMissingPerson(caseId, details).send({ from: accounts[0] });
       
-      await tx.wait();
       alert('Missing person report submitted successfully!');
       onSuccess();
       
@@ -47,7 +51,7 @@ function AddMissingPerson({ contract, onSuccess }) {
         contactNumber: ''
       });
     } catch (error) {
-      console.error("Error adding missing person:", error);
+      console.error('Error adding missing person:', error);
       alert('Failed to submit report. Please try again.');
     } finally {
       setLoading(false);

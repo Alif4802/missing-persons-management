@@ -71,6 +71,20 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    // On mount, check for window.ethereum and request accounts
+    const checkAndRequestAccounts = async () => {
+      if (window.ethereum) {
+        try {
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+        } catch (err) {
+          console.error('User denied account access or error occurred:', err);
+        }
+      }
+    };
+    checkAndRequestAccounts();
+  }, []);
+
   const handleRegister = async (nid, name, role) => {
     try {
       setLoading(true);

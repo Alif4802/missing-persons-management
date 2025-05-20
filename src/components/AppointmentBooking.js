@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { parseEther } from 'ethers'; // Updated import
+import React, { useState, useEffect, useCallback } from 'react';
+import web3 from '../ethereum/provider';
+import contract from '../ethereum/contract';
 
-function AppointmentBooking({ contract, cases, timeSlots }) {
+function AppointmentBooking({ cases, timeSlots }) {
   const [investigators, setInvestigators] = useState([]);
   const [selectedCase, setSelectedCase] = useState('');
   const [selectedInvestigator, setSelectedInvestigator] = useState('');
@@ -16,13 +17,7 @@ function AppointmentBooking({ contract, cases, timeSlots }) {
     ]);
   }, []);
   
-  useEffect(() => {
-    if (selectedInvestigator) {
-      checkSlotAvailability(selectedInvestigator);
-    }
-  }, [selectedInvestigator, contract]);
-  
-  const checkSlotAvailability = async (investigatorAddress) => {
+  const checkSlotAvailability = useCallback(async (investigatorAddress) => {
     try {
       const availability = {};
       for (let i = 0; i < timeSlots.length; i++) {
@@ -33,30 +28,33 @@ function AppointmentBooking({ contract, cases, timeSlots }) {
     } catch (error) {
       console.error("Error checking slot availability:", error);
     }
-  };
+  }, [timeSlots]);
+
+  useEffect(() => {
+    if (selectedInvestigator) {
+      checkSlotAvailability(selectedInvestigator);
+    }
+  }, [selectedInvestigator, checkSlotAvailability]);
   
   const bookAppointment = async () => {
     if (!selectedCase || !selectedInvestigator || selectedTimeSlot === '') {
       alert('Please select all required fields');
       return;
     }
-    
     setLoading(true);
     try {
-      const tx = await contract.bookAppointment(
-        parseInt(selectedCase),
+      const accounts = await web3.eth.getAccounts();
+      await contract.methods.bookAppointment(
+        selectedCase,
         selectedInvestigator,
-        parseInt(selectedTimeSlot),
-        { value: parseEther('0.01') } // Updated to use parseEther
-      );
-      
-      await tx.wait();
+        selectedTimeSlot
+      ).send({ from: accounts[0], value: web3.utils.toWei('0.01', 'ether') });
       alert('Appointment booked successfully!');
       setSelectedCase('');
       setSelectedTimeSlot('');
       checkSlotAvailability(selectedInvestigator);
     } catch (error) {
-      console.error("Error booking appointment:", error);
+      console.error('Error booking appointment:', error);
       alert('Failed to book appointment. Please try again.');
     } finally {
       setLoading(false);
